@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Profile {
+  id       String  @id @default(uuid())
+  userId   String  @unique
+  fullname String?
+  email    String?
+}
+
+model User {
+  id           String         @id @default(uuid())
+  userId       String
+  fileUrl      String
+  fileName     String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  conversation Conversation[]
+  question     Question[]
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  userId    String
+  questions String[]
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  role      Role     @default(user)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model documents {
+  id        BigInt                 @id @default(autoincrement())
+  content   String?
+  metadata  Json?
+  embedding Unsupported("vector")?
+}
+
+enum Role {
+  user
+  assistant
+}
