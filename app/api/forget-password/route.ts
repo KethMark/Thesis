@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   const supabase = createClient();
 
   try {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/confirm`,
     });
 
@@ -21,6 +21,7 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (error) {
+    console.error(error)
     return NextResponse.json(
       { error: "An unexpected error occurred" },
       { status: 500 }

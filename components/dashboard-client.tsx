@@ -53,7 +53,7 @@ const uploadFileToSupabase = async (
 };
 
 export const ClientDashboard = () => {
-  let maxfile = 6 * 1024 * 1024;
+  const maxfile = 6 * 1024 * 1024;
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
 
@@ -113,7 +113,7 @@ export const ClientDashboard = () => {
 
   async function ingestPDF(fileUrl: string, fileName: string) {
     try {
-      let res = await fetch("/api/ingestPdf", {
+      const res = await fetch("/api/ingestPdf", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -124,7 +124,7 @@ export const ClientDashboard = () => {
         }),
       });
 
-      let data = await res.json();
+      const data = await res.json();
       router.push(`/document/${data.id}`);
     } catch (error) {
       console.error("Ingest failed:", error);

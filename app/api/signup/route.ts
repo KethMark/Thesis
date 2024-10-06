@@ -23,9 +23,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error?.message || "Signup failed" }, { status: 400 });
     }
 
+    if (!data || !data.user || !data.user.id) {
+      return NextResponse.json({ error: 'Theirs something wrong' }, { status: 401 });
+    }
+
     const profile = await client.profile.create({
       data: {
-        userId: data.user?.id!,
+        userId: data.user.id,
         fullname,
         email
       }

@@ -14,6 +14,7 @@ export async function DELETE() {
 
     return NextResponse.json({success: true, message: 'Logout success'})
   } catch (error) {
+    console.error(error)
     return NextResponse.json({ error: 'Theirs a problem singning out your account'})
   }
 }

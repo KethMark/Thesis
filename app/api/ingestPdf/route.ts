@@ -15,11 +15,15 @@ export async function POST(req: Request) {
 
   const { fileUrl, fileName } = await req.json();
 
+  if (!session || !session.user || !session.user.id) {
+    return NextResponse.json({ error: 'User not authenticated' }, { status: 401 });
+  }
+
   const data = await client.user.create({
     data: {
       fileUrl,
       fileName,
-      userId: session.user?.id!,
+      userId: session.user.id,
     },
   });
 

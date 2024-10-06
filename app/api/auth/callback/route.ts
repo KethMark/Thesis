@@ -31,7 +31,7 @@ export async function GET(request: Request) {
               if (!existingProfile) {
                 console.log('No existing profile found. Proceeding to create one.');
         
-                let fullname = user?.user_metadata?.full_name;
+                const fullname = user?.user_metadata?.full_name;
         
                 // Create new profile
                 await client.profile.create({

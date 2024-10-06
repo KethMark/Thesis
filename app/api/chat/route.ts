@@ -203,7 +203,7 @@ export async function POST(req: NextRequest) {
         aiResponse += decoded
         controller.enqueue(chunk)
       },
-      flush(controller) {
+      flush() {
         saveMessage(chatId, aiResponse, 'assistant').catch(console.error)
       }
     })
@@ -215,8 +215,8 @@ export async function POST(req: NextRequest) {
       },
     })
 
-  } catch (e: any) {
-    console.error("Theirs something wrong:", e)
-    return NextResponse.json({ error: e.message }, { status: 500 })
+  } catch (error ) {
+    console.error("Theirs something wrong:", error)
+    return NextResponse.json({ error }, { status: 500 })
   }
 }
