@@ -45,7 +45,7 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
   const chatId = document?.id;
   const pdfUrl = document?.fileUrl;
 
-  let userProfilePic = AvatarProf ? AvatarProf : "/profile-icon.png";
+  const userProfilePic = AvatarProf ? AvatarProf : "/profile-icon.png";
 
   const toolbarPluginInstance = toolbarPlugin();
   const pageNavigationPluginInstance = pageNavigationPlugin();

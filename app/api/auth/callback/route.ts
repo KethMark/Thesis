@@ -31,14 +31,15 @@ export async function GET(request: Request) {
               if (!existingProfile) {
                 console.log('No existing profile found. Proceeding to create one.');
         
-                const fullname = user?.user_metadata?.full_name;
+                const fullname = user.user_metadata?.full_name || '';
+                const email = user.user_metadata?.email || ''
         
                 // Create new profile
                 await client.profile.create({
                   data: {
                     userId: user.id,
-                    fullname: fullname || '',
-                    email: user.user_metadata?.email || '',
+                    fullname,
+                    email
                   }
                 });
               }
