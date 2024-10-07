@@ -64,7 +64,7 @@ export function SignInComponent() {
       router.refresh();
       form.reset();
     },
-    onError: (error: any) => {
+    onError: (error) => {
       if (axios.isAxiosError(error) && error.response) {
         const errorMessage = error.response.data.error || "Failed to sign in";
         toast.error(errorMessage);

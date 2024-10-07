@@ -61,7 +61,7 @@ export function SignUpComponent() {
       router.refresh();
       form.reset();
     },
-    onError: (error: any) => {
+    onError: (error) => {
       if (axios.isAxiosError(error) && error.response) {
         // Handle specific error messages from the server
         const errorMessage = error.response.data.error || "Failed to create an account";

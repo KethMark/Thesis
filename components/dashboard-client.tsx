@@ -29,10 +29,6 @@ const uploadFileToSupabase = async (
     throw new Error("No access token available");
   }
 
-  const formData = new FormData();
-  formData.append("cacheControl", "3600");
-  formData.append("", file);
-
   try {
     const { error } = await supabase.storage
       .from(bucket)
@@ -52,15 +48,35 @@ const uploadFileToSupabase = async (
   }
 };
 
-export const ClientDashboard = () => {
+export const ClientDashboard: React.FC = () => {
   const maxfile = 6 * 1024 * 1024;
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
 
+  const ingestPDF = useCallback(async (fileUrl: string, fileName: string) => {
+    try {
+      const res = await fetch("/api/ingestPdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileUrl,
+          fileName,
+        }),
+      });
+
+      const data = await res.json();
+      router.push(`/document/${data.id}`);
+    } catch (error) {
+      console.error("Ingest failed:", error);
+    }
+  }, [router]);
+
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     for (const file of acceptedFiles) {
       try {
-        const size = acceptedFiles[0].size > maxfile;
+        const size = file.size > maxfile;
         const limit = "6mb";
         setUploading(true);
 
@@ -98,38 +114,18 @@ export const ClientDashboard = () => {
             });
           }
         } else {
-          toast.error(`File ${file.name} exceed ${limit}`, {
+          toast.error(`File ${file.name} exceeds ${limit}`, {
             position: "top-right",
           });
         }
       } catch (error) {
-        toast.error(`Their's something wrong: ${error}`, {
+        toast.error(`There's something wrong: ${error}`, {
           position: "top-right",
         });
       }
     }
     setUploading(false);
-  }, []);
-
-  async function ingestPDF(fileUrl: string, fileName: string) {
-    try {
-      const res = await fetch("/api/ingestPdf", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fileUrl,
-          fileName,
-        }),
-      });
-
-      const data = await res.json();
-      router.push(`/document/${data.id}`);
-    } catch (error) {
-      console.error("Ingest failed:", error);
-    }
-  }
+  }, [ingestPDF, maxfile]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

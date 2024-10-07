@@ -1,10 +1,16 @@
+import React from 'react';
 import { Switch } from "@headlessui/react";
 
-function classNames(...classes: any) {
+function classNames(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function Toggle({ chatOnlyView, setChatOnlyView }: any) {
+interface ToggleProps {
+  chatOnlyView: boolean;
+  setChatOnlyView: (value: boolean) => void;
+}
+
+export default function Toggle({ chatOnlyView, setChatOnlyView }: ToggleProps) {
   return (
     <div className="sm:hidden flex w-full items-center justify-center sm:mt-0 mt-5 mb-1">
       <Switch.Group as="div" className="flex">

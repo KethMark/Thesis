@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
       temperature: 0.9,
       modelName: "mixtral-8x7b-32768",
       apiKey: process.env.GROQ_API_KEY,
+      verbose: true
     });
 
     const client = createClient();

@@ -111,7 +111,7 @@ export const Sidebar = ({ docs, prof, AvatarProf }: userProps) => {
       if(data.error) {
         console.log(data.error)
       } else {
-        docs.filter((doc: any) => doc.id !== id)
+        docs.filter((doc: Docs) => doc.id !== id)
         toast.success('File deleted success', { 
           id: toastId, 
           position: 'top-right'

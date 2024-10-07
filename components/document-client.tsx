@@ -41,6 +41,15 @@ interface Question {
   createdAt: string;
 }
 
+interface Source {
+  metadata: {
+    'loc.pageNumber'?: number;
+    loc?: {
+      pageNumber?: number;
+    };
+  };
+}
+
 export const DocumentClient = ({ document, AvatarProf }: documents) => {
   const chatId = document?.id;
   const pdfUrl = document?.fileUrl;
@@ -62,9 +71,7 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const [sourcesForMessages, setSourcesForMessages] = useState<
-    Record<string, any>
-  >({});
+  const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, Source[]>>({});
 
   const [chatOnlyView, setChatOnlyView] = useState(false);
   const router = useRouter();
@@ -145,9 +152,7 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
     handleSubmit(e);
   };
 
-  const extractSourcePageNumber = (source: {
-    metadata: Record<string, any>;
-  }) => {
+  const extractSourcePageNumber = (source: Source) => {
     return source.metadata["loc.pageNumber"] ?? source.metadata.loc?.pageNumber;
   };
 
@@ -213,15 +218,14 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
                   >
                     <div className="flex">
                       <Image
-                        key={index}
                         src={
                           message.role === "assistant"
                             ? "/profile-icon.png"
                             : userProfilePic
                         }
                         alt="profile image"
-                        width={message.role === "assistant" ? "35" : "33"}
-                        height="30"
+                        width={message.role === "assistant" ? 35 : 33}
+                        height={30}
                         className="mr-4 rounded-md h-full"
                         priority
                       />
@@ -232,26 +236,26 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
                     {(isLastMessage || previousMessages) && sources && (
                       <div className="flex space-x-4 ml-14 mt-3">
                         {sources
-                          .filter((source: any, index: number, self: any) => {
+                          .filter((source: Source, index: number, self: Source[]) => {
                             const pageNumber = extractSourcePageNumber(source);
                             return (
                               self.findIndex(
-                                (s: any) =>
+                                (s: Source) =>
                                   extractSourcePageNumber(s) === pageNumber
                               ) === index
                             );
                           })
-                          .map((source: any) => (
+                          .map((source: Source, index: number) => (
                             <button
-                              className=" flex items-center border-2 bg-gray-200 px-3 py-2 hover:bg-gray-100 transition rounded-lg"
+                              key={`source-${index}`}
+                              className="flex items-center border-2 bg-gray-200 px-3 py-2 hover:bg-gray-100 transition rounded-lg"
                               onClick={() =>
                                 pageNavigationPluginInstance.jumpToPage(
                                   Number(extractSourcePageNumber(source)) - 1
                                 )
                               }
                             >
-                              <FileText className="h-4 w-4" />.{" "}
-                              {extractSourcePageNumber(source)}
+                              <FileText className="h-4 w-4" />. {extractSourcePageNumber(source)}
                             </button>
                           ))}
                       </div>
@@ -269,7 +273,7 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
                 {messages.length === 0 && (
                   <div className="w-full max-w-3xl mx-auto mt-80">
                     <div className="ml-4">
-                      <div className=" flex items-center gap-2">
+                      <div className="flex items-center gap-2">
                         <HelpCircle className="w-6 h-6 text-primary" />
                         Suggested Questions:
                       </div>
@@ -277,14 +281,14 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
                     <div className="p-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {question &&
-                          question[0].questions.map((question, index) => (
+                          question[0].questions.map((q, index) => (
                             <Button
                               key={index}
                               variant="outline"
                               className="w-full text-left justify-start h-auto py-3 px-4 hover:bg-primary/10 transition-colors"
-                              onClick={() => onClickQuestion(question)}
+                              onClick={() => onClickQuestion(q)}
                             >
-                              <span className="line-clamp-2">{question}</span>
+                              <span className="line-clamp-2">{q}</span>
                             </Button>
                           ))
                         }
