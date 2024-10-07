@@ -311,7 +311,7 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  handleSubmit(e as any);
+                  handleSubmit(e as React.KeyboardEvent<HTMLTextAreaElement>);
                 }
               }}
               className="flex-1 pr-16 min-h-[24px] max-h-[72px] overflow-hidden"
