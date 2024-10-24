@@ -23,7 +23,7 @@ const data = {
 }
 
 export function TeamSwitcher() {
-  const [activeTeam, _setActiveTeam] = React.useState(data.teams[0])
+  const activeTeam = data.teams[0]
 
   return (
     <SidebarMenu>
