@@ -15,12 +15,19 @@ import { Message, useChat } from "ai/react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
-import { ArrowLeft, FileText, HelpCircle, Loader, Send } from "lucide-react";
+import {
+  ArrowLeft,
+  CircleStop,
+  FileText,
+  Send,
+  TriangleAlert,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ReactMarkdown from "react-markdown";
-import { useRouter } from "next/navigation";
+import { Markdown } from "./markdown";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 interface Documents {
   id: string;
@@ -34,21 +41,25 @@ interface documents {
   AvatarProf: string | null;
 }
 
-interface Question {
-  id: string;
-  userId: string;
-  questions: string[];
-  createdAt: string;
-}
-
 interface Source {
   metadata: {
-    'loc.pageNumber'?: number;
+    "loc.pageNumber"?: number;
     loc?: {
       pageNumber?: number;
     };
   };
 }
+
+const suggestedActions = [
+  {
+    title: "What's the summary of these documents?",
+    action: "what's the summary of these documents?",
+  },
+  {
+    title: "Who is the author of these documents?",
+    action: "who is the author of these documents?",
+  },
+];
 
 export const DocumentClient = ({ document, AvatarProf }: documents) => {
   const chatId = document?.id;
@@ -71,29 +82,27 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, Source[]>>({});
+  const [sourcesForMessages, setSourcesForMessages] = useState<
+    Record<string, Source[]>
+  >({});
 
   const [chatOnlyView, setChatOnlyView] = useState(false);
-  const router = useRouter();
+  const router = useRouter()
 
   const { data: conversation } = useQuery<Message[]>({
     queryKey: ["chat", chatId],
     queryFn: async () => {
-      const response = await axios.post<Message[]>("/api/conversation", {
-        chatId,
-      });
-      return response.data;
+      try {
+        const response = await axios.post<Message[]>("/api/conversation", {
+          chatId,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error fetching conversation:", error);
+        return [];
+      }
     },
-  });
-
-  const { data: question, isLoading: pendingQuestion } = useQuery<Question[]>({
-    queryKey: ["conversation", chatId],
-    queryFn: async () => {
-      const response = await axios.post<Question[]>("/api/question", {
-        chatId,
-      });
-      return response.data;
-    },
+    retry: false,
   });
 
   const {
@@ -102,13 +111,17 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
     handleInputChange,
     handleSubmit,
     isLoading,
-    setInput,
+    append,
+    stop,
+    reload,
+    error,
   } = useChat({
     api: "/api/chat",
     body: {
       chatId,
     },
     initialMessages: conversation || [],
+    maxSteps: 1,
     onResponse(response) {
       const sourcesHeader = response.headers.get("x-sources");
       const sources = sourcesHeader
@@ -123,7 +136,6 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
         });
       }
     },
-    streamMode: "text",
     onError: (e) => {
       console.error("Error occurred:", e);
       toast.error(e.message);
@@ -154,18 +166,6 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
 
   const extractSourcePageNumber = (source: Source) => {
     return source.metadata["loc.pageNumber"] ?? source.metadata.loc?.pageNumber;
-  };
-
-  const onClickQuestion = (value: string) => {
-    setInput(value);
-    setTimeout(() => {
-      formRef.current?.dispatchEvent(
-        new Event("submit", {
-          cancelable: true,
-          bubbles: true,
-        })
-      );
-    }, 1);
   };
 
   return (
@@ -202,6 +202,7 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
           </Link>
           <div className="flex-1 overflow-y-auto mb-4 space-y-4">
             {messages.map((message, index) => {
+              console.log(typeof message.content, message.content);
               const sources = sourcesForMessages[index] || undefined;
               const isLastMessage = !isLoading && index === messages.length - 1;
               const previousMessages = index !== messages.length - 1;
@@ -220,7 +221,7 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
                       <Image
                         src={
                           message.role === "assistant"
-                            ? "/profile-icon.png"
+                            ? "/AI.png"
                             : userProfilePic
                         }
                         alt="profile image"
@@ -229,22 +230,27 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
                         className="mr-4 rounded-md h-full"
                         priority
                       />
-                      <ReactMarkdown className="prose">
-                        {message.content}
-                      </ReactMarkdown>
+                      <div className="flex flex-col gap-6 w-full">
+                        <div className="text-zinc-800 dark:text-zinc-300 flex flex-col gap-4">
+                          <Markdown>{message.content}</Markdown>
+                        </div>
+                      </div>
                     </div>
                     {(isLastMessage || previousMessages) && sources && (
                       <div className="flex space-x-4 ml-14 mt-3">
                         {sources
-                          .filter((source: Source, index: number, self: Source[]) => {
-                            const pageNumber = extractSourcePageNumber(source);
-                            return (
-                              self.findIndex(
-                                (s: Source) =>
-                                  extractSourcePageNumber(s) === pageNumber
-                              ) === index
-                            );
-                          })
+                          .filter(
+                            (source: Source, index: number, self: Source[]) => {
+                              const pageNumber =
+                                extractSourcePageNumber(source);
+                              return (
+                                self.findIndex(
+                                  (s: Source) =>
+                                    extractSourcePageNumber(s) === pageNumber
+                                ) === index
+                              );
+                            }
+                          )
                           .map((source: Source, index: number) => (
                             <button
                               key={`source-${index}`}
@@ -255,7 +261,8 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
                                 )
                               }
                             >
-                              <FileText className="h-4 w-4" />. {extractSourcePageNumber(source)}
+                              <FileText className="h-4 w-4" />.{" "}
+                              {extractSourcePageNumber(source)}
                             </button>
                           ))}
                       </div>
@@ -264,42 +271,54 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
                 </div>
               );
             })}
-            {pendingQuestion ? (
-              <div className="flex items-center justify-center min-h-[500px]">
-                <Loader className="h-15 w-15 animate-spin"/>
-              </div>
-            ) : (
-              <div>
-                {messages.length === 0 && (
-                  <div className="w-full max-w-3xl mx-auto mt-80">
-                    <div className="ml-4">
-                      <div className="flex items-center gap-2">
-                        <HelpCircle className="w-6 h-6 text-primary" />
-                        Suggested Questions:
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {question &&
-                          question[0].questions.map((q, index) => (
-                            <Button
-                              key={index}
-                              variant="outline"
-                              className="w-full text-left justify-start h-auto py-3 px-4 hover:bg-primary/10 transition-colors"
-                              onClick={() => onClickQuestion(q)}
-                            >
-                              <span className="line-clamp-2">{q}</span>
-                            </Button>
-                          ))
-                        }
-                      </div>
-                    </div>
+
+            {messages.length === 0 && (
+              <div className="max-w-96 mx-auto mt-56">
+                <div className="">
+                  <p className="text-2xl font-semibold">Suggested Actions:</p>
+                  <p className="text-muted-foreground text-sm mb-3">
+                    you can select this action below
+                  </p>
+                  <div className="space-y-2">
+                    {suggestedActions.map((suggestedAction, index) => (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.05 * index }}
+                        key={index}
+                        className={index > 1 ? "hidden sm:block" : "block"}
+                      >
+                        <button
+                          onClick={async () => {
+                            append({
+                              role: "user",
+                              content: suggestedAction.action,
+                            });
+                          }}
+                          className=""
+                        >
+                          <span className="hover:underline">
+                            {suggestedAction.title}
+                          </span>
+                        </button>
+                      </motion.div>
+                    ))}
                   </div>
-                )}
+                </div>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
+
+          {error && (
+            <div className="flex justify-center mb-4">
+              <Button onClick={() => reload()}>
+                <TriangleAlert className="mr-2 h-4 w-4" />
+                Regenerate
+              </Button>
+            </div>
+          )}
+
           <form onSubmit={handleFormSubmit} className="relative" ref={formRef}>
             <Textarea
               ref={textareaRef}
@@ -320,10 +339,13 @@ export const DocumentClient = ({ document, AvatarProf }: documents) => {
             <Button
               type="submit"
               className="absolute right-2 top-2"
-              disabled={isLoading}
               variant="ghost"
             >
-              <Send className="h-4 w-4" />
+              {isLoading ? (
+                <CircleStop onClick={() => stop()} className="h-4 w-4" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </form>
         </div>

@@ -32,8 +32,8 @@ export const OAuthGoogle = () => {
       <Icon.Google className="mr-2 h-4 w-4"/>
       Google
     </Button>
-  );
-};
+  )
+}
 
 export const OAuthGithub = () => {
   const supabase = createClient();
@@ -63,5 +63,5 @@ export const OAuthGithub = () => {
       <Icon.Github className="mr-2 h-4 w-4 fill-black" />
       Github
     </Button>
-  );
-};
+  )
+}

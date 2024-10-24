@@ -9,36 +9,36 @@ export async function DELETE(req: Request) {
 
   const supabase = createClient()
 
-  const { data } = await supabase.auth.getUser()
+  // const { data } = await supabase.auth.getUser()
 
-  if(!data) {
-    return NextResponse.json({error: 'No valid session'})
-  }
+  // if(!data) {
+  //   return NextResponse.json({error: 'No valid session'})
+  // }
 
-  const vectorstore = new SupabaseVectorStore(
-    new CohereEmbeddings({
-      apiKey: process.env.COHERE_API_KEY,
-      batchSize: 48,
-      model: "embed-english-v3.0",
-    }),
-    {
-      client: supabase,
-      tableName: "documents",
-      queryName: "match_documents",
-    }
-  );
+  // const vectorstore = new SupabaseVectorStore(
+  //   new CohereEmbeddings({
+  //     apiKey: process.env.COHERE_API_KEY,
+  //     batchSize: 48,
+  //     model: "embed-english-v3.0",
+  //   }),
+  //   {
+  //     client: supabase,
+  //     tableName: "documents",
+  //     queryName: "match_documents",
+  //   }
+  // );
 
   try {
-    const document = await client.user.findFirst({
-      where: {
-        id,
-        userId: data.user?.id
-      }
-    })
+    // const document = await client.user.findFirst({
+    //   where: {
+    //     id,
+    //     userId: data.user?.id
+    //   }
+    // })
 
-    if(!document) {
-      return NextResponse.json({ error: 'Document not found'})
-    }
+    // if(!document) {
+    //   return NextResponse.json({ error: 'Document not found'})
+    // }
 
     const fullUrl = fileUrl
     const fileName = fullUrl.split('/').pop()
@@ -54,19 +54,19 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Pdf not found'})
     }
 
-    const { data: doc, error: failed } = await supabase
-      .from('documents')
-      .select("id")
-      .eq("metadata->>chat_id", id);
+    // const { data: doc, error: failed } = await supabase
+    //   .from('documents')
+    //   .select("id")
+    //   .eq("metadata->>chat_id", id);
 
-    if (failed) {
-      console.error("Error querying documents:", failed);
-      return NextResponse.json('Cant find the chat_Id')
-    }
+    // if (failed) {
+    //   console.error("Error querying documents:", failed);
+    //   return NextResponse.json('Cant find the chat_Id')
+    // }
 
-    const documents = doc.map(doc => doc.id);
+    // const documents = doc.map(doc => doc.id);
 
-    await vectorstore.delete({ids: documents})
+    // await vectorstore.delete({ids: documents})
 
     await client.user.delete({
       where: {

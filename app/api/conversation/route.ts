@@ -1,26 +1,28 @@
 import client from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
-export async function POST(req: Request){
+export async function POST(req: Request) {
   const { chatId } = await req.json()  
 
   if(!chatId) {
-    return NextResponse.json('chatId is missing')
+    return NextResponse.json({ error: 'chatId is missing' }, { status: 400 })
   }
   
-  const conversation = await client.conversation.findMany({
+  const conversation = await client.conversation.findFirst({
     where: {
       userId: chatId
     },
     orderBy: {
-      createdAt: 'asc'
+      createdAt: 'desc'
     },
     select: {
-      id: true,
       content: true,
-      createdAt: true,
-      role: true
     }
   })
-  return NextResponse.json(conversation)
+
+  if (!conversation) {
+    return NextResponse.json([])
+  }
+
+  return NextResponse.json(conversation.content)
 }
