@@ -72,7 +72,7 @@ export function NavProjects() {
       if (data.error) {
         console.log(data.error);
       } else {
-        user && user.filter((doc: Docs) => doc.id !== id);
+        user?.filter((doc: Docs) => doc.id !== id);
         toast.success("File deleted success", {
           id: toastId,
         });

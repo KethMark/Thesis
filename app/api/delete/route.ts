@@ -1,7 +1,5 @@
 import client from "@/lib/prisma"
 import { createClient } from "@/utils/supabase/server-props"
-import { CohereEmbeddings } from "@langchain/cohere"
-import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase"
 import { NextResponse } from "next/server"
 
 export async function DELETE(req: Request) {
